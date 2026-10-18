@@ -1,0 +1,576 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Tracker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 30px 15px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1d4ed8;
+        }
+
+        .card {
+            background: white;
+            padding: 24px;
+            margin-top: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #0000000d;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 7px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 15px;
+            background: white;
+            color: #1e293b;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 12px 18px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 18px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px #0000000d;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 0;
+        }
+
+        .stat-card p {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 0;
+        }
+
+        .search-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .job-item {
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow-wrap: anywhere;
+        }
+
+        .job-item h3 {
+            margin-top: 0;
+        }
+
+        .job-item .status-select {
+            margin-top: 8px;
+        }
+
+        .edit-btn {
+            background: #059669;
+            margin-right: 8px;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+        }
+
+        .cancel-btn {
+            background: #64748b;
+            margin-left: 8px;
+        }
+
+        #message {
+            font-weight: bold;
+        }
+
+        @media (min-width: 500px) {
+            .search-controls {
+                flex-direction: row;
+            }
+
+            .search-controls input,
+            .search-controls select {
+                min-width: 0;
+                flex: 1;
+            }
+        }
+
+        @media (min-width: 650px) {
+            .stats {
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <h1>My Job Tracker</h1>
+
+        <p style="text-align: center;">
+            Manage your job applications in one place.
+        </p>
+
+        <!-- Dashboard Statistics -->
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Total Applications</h3>
+                <p id="totalCount">0</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Applied</h3>
+                <p id="appliedCount">0</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Interviews</h3>
+                <p id="interviewCount">0</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Selected</h3>
+                <p id="selectedCount">0</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Rejected</h3>
+                <p id="rejectedCount">0</p>
+            </div>
+        </div>
+
+        <!-- Add / Edit Form -->
+        <div class="card">
+            <h2 id="formTitle">Add New Application</h2>
+
+            <form id="jobForm">
+                <label for="company">Company Name</label>
+                <input
+                    id="company"
+                    type="text"
+                    placeholder="e.g. Google"
+                    required
+                >
+
+                <label for="role">Job Role</label>
+                <input
+                    id="role"
+                    type="text"
+                    placeholder="e.g. Software Engineer"
+                    required
+                >
+
+                <label for="status">Application Status</label>
+                <select id="status">
+                    <option value="Applied">Applied</option>
+                    <option value="Interview">Interview</option>
+                    <option value="Selected">Selected</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+
+                <button id="submitBtn" type="submit">
+                    Add Application
+                </button>
+
+                <button
+                    id="cancelBtn"
+                    class="cancel-btn"
+                    type="button"
+                    hidden
+                >
+                    Cancel Edit
+                </button>
+            </form>
+
+            <p id="message" aria-live="polite"></p>
+        </div>
+
+        <!-- Applications List -->
+        <div class="card">
+            <h2>My Applications</h2>
+
+            <div class="search-controls">
+                <input
+                    id="searchInput"
+                    type="text"
+                    placeholder="Search company or job role..."
+                >
+
+                <select id="filterStatus">
+                    <option value="All">All Applications</option>
+                    <option value="Applied">Applied</option>
+                    <option value="Interview">Interview</option>
+                    <option value="Selected">Selected</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div id="jobList"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const form = document.getElementById("jobForm");
+        const companyInput = document.getElementById("company");
+        const roleInput = document.getElementById("role");
+        const statusInput = document.getElementById("status");
+        const jobList = document.getElementById("jobList");
+        const message = document.getElementById("message");
+
+        const searchInput = document.getElementById("searchInput");
+        const filterStatus = document.getElementById("filterStatus");
+
+        const totalCount = document.getElementById("totalCount");
+        const appliedCount = document.getElementById("appliedCount");
+        const interviewCount = document.getElementById("interviewCount");
+        const selectedCount = document.getElementById("selectedCount");
+        const rejectedCount = document.getElementById("rejectedCount");
+
+        const formTitle = document.getElementById("formTitle");
+        const submitBtn = document.getElementById("submitBtn");
+        const cancelBtn = document.getElementById("cancelBtn");
+
+        // Load saved applications
+        let jobs = [];
+
+        try {
+            const savedData = JSON.parse(
+                localStorage.getItem("jobs") || "[]"
+            );
+
+            if (Array.isArray(savedData)) {
+                jobs = savedData.filter(function(job) {
+                    return job &&
+                        Number.isFinite(job.id) &&
+                        typeof job.company === "string" &&
+                        typeof job.role === "string" &&
+                        ["Applied", "Interview", "Selected", "Rejected"]
+                            .includes(job.status);
+                });
+            }
+        } catch (error) {
+            console.error("Could not load saved jobs:", error);
+        }
+
+        let editingJobId = null;
+
+        // Save data in LocalStorage
+        function saveJobs() {
+            try {
+                localStorage.setItem("jobs", JSON.stringify(jobs));
+                return true;
+            } catch (error) {
+                console.error("Could not save jobs:", error);
+                message.textContent =
+                    "Could not save data. Please check browser storage.";
+                message.style.color = "red";
+                return false;
+            }
+        }
+
+        // Update all dashboard counters
+        function updateStats() {
+            totalCount.textContent = jobs.length;
+
+            appliedCount.textContent = jobs.filter(
+                job => job.status === "Applied"
+            ).length;
+
+            interviewCount.textContent = jobs.filter(
+                job => job.status === "Interview"
+            ).length;
+
+            selectedCount.textContent = jobs.filter(
+                job => job.status === "Selected"
+            ).length;
+
+            rejectedCount.textContent = jobs.filter(
+                job => job.status === "Rejected"
+            ).length;
+        }
+
+        // Reset form and exit edit mode
+        function resetForm() {
+            form.reset();
+            editingJobId = null;
+
+            formTitle.textContent = "Add New Application";
+            submitBtn.textContent = "Add Application";
+            cancelBtn.hidden = true;
+        }
+
+        // Add a new application or update an existing one
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const company = companyInput.value.trim();
+            const role = roleInput.value.trim();
+            const status = statusInput.value;
+
+            if (!company || !role) {
+                message.textContent = "Please fill in all fields.";
+                message.style.color = "red";
+                return;
+            }
+
+            const previousJobs = jobs.map(job => ({ ...job }));
+            const wasEditing = editingJobId !== null;
+
+            if (wasEditing) {
+                jobs = jobs.map(function(job) {
+                    if (job.id === editingJobId) {
+                        return {
+                            ...job,
+                            company: company,
+                            role: role,
+                            status: status
+                        };
+                    }
+
+                    return job;
+                });
+            } else {
+                jobs.push({
+                    id: Date.now(),
+                    company: company,
+                    role: role,
+                    status: status
+                });
+            }
+
+            if (!saveJobs()) {
+                jobs = previousJobs;
+                renderJobs();
+                return;
+            }
+
+            resetForm();
+            renderJobs();
+
+            message.textContent = wasEditing
+                ? "Application updated successfully!"
+                : "Application added successfully!";
+
+            message.style.color = "green";
+        });
+
+        // Cancel editing without changing saved data
+        cancelBtn.addEventListener("click", function() {
+            resetForm();
+
+            message.textContent = "Edit cancelled.";
+            message.style.color = "#64748b";
+        });
+
+        // Render applications and refresh statistics
+        function renderJobs() {
+            updateStats();
+            jobList.replaceChildren();
+
+            const searchText = searchInput.value.toLowerCase().trim();
+            const selectedStatus = filterStatus.value;
+
+            const filteredJobs = jobs.filter(function(job) {
+                const matchesSearch =
+                    job.company.toLowerCase().includes(searchText) ||
+                    job.role.toLowerCase().includes(searchText);
+
+                const matchesStatus =
+                    selectedStatus === "All" ||
+                    job.status === selectedStatus;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            if (filteredJobs.length === 0) {
+                const emptyMessage = document.createElement("p");
+
+                emptyMessage.textContent = jobs.length === 0
+                    ? "No applications added yet."
+                    : "No matching applications found.";
+
+                jobList.appendChild(emptyMessage);
+                return;
+            }
+
+            filteredJobs.forEach(function(job) {
+                const card = document.createElement("div");
+                card.className = "job-item";
+
+                const title = document.createElement("h3");
+                title.textContent = job.company;
+
+                const roleText = document.createElement("p");
+                roleText.textContent = "Role: " + job.role;
+
+                const statusText = document.createElement("p");
+                statusText.textContent = "Current Status: " + job.status;
+
+                // Status update dropdown
+                const statusSelect = document.createElement("select");
+                statusSelect.className = "status-select";
+                statusSelect.setAttribute(
+                    "aria-label",
+                    "Update status for " + job.company
+                );
+
+                ["Applied", "Interview", "Selected", "Rejected"]
+                    .forEach(function(status) {
+                        const option = document.createElement("option");
+                        option.value = status;
+                        option.textContent = status;
+                        option.selected = status === job.status;
+
+                        statusSelect.appendChild(option);
+                    });
+
+                statusSelect.addEventListener("change", function() {
+                    const previousJobs = jobs.map(item => ({ ...item }));
+
+                    jobs = jobs.map(function(item) {
+                        return item.id === job.id
+                            ? { ...item, status: statusSelect.value }
+                            : item;
+                    });
+
+                    if (!saveJobs()) {
+                        jobs = previousJobs;
+                        renderJobs();
+                        return;
+                    }
+
+                    renderJobs();
+
+                    message.textContent =
+                        "Application status updated successfully!";
+                    message.style.color = "green";
+                });
+
+                // Edit button
+                const editButton = document.createElement("button");
+                editButton.textContent = "Edit";
+                editButton.className = "edit-btn";
+                editButton.type = "button";
+
+                editButton.addEventListener("click", function() {
+                    editingJobId = job.id;
+
+                    companyInput.value = job.company;
+                    roleInput.value = job.role;
+                    statusInput.value = job.status;
+
+                    formTitle.textContent = "Edit Application";
+                    submitBtn.textContent = "Save Changes";
+                    cancelBtn.hidden = false;
+
+                    message.textContent =
+                        "Update the details, then click Save Changes.";
+                    message.style.color = "#059669";
+
+                    companyInput.focus();
+                    form.scrollIntoView({ behavior: "smooth" });
+                });
+
+                // Delete button
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Delete";
+                deleteButton.className = "delete-btn";
+                deleteButton.type = "button";
+
+                deleteButton.addEventListener("click", function() {
+                    const previousJobs = jobs;
+                    jobs = jobs.filter(item => item.id !== job.id);
+
+                    if (!saveJobs()) {
+                        jobs = previousJobs;
+                        renderJobs();
+                        return;
+                    }
+
+                    if (editingJobId === job.id) {
+                        resetForm();
+                    }
+
+                    renderJobs();
+
+                    message.textContent =
+                        "Application deleted successfully!";
+                    message.style.color = "green";
+                });
+
+                card.append(
+                    title,
+                    roleText,
+                    statusText,
+                    statusSelect,
+                    editButton,
+                    deleteButton
+                );
+
+                jobList.appendChild(card);
+            });
+        }
+
+        // Search and filter
+        searchInput.addEventListener("input", renderJobs);
+        filterStatus.addEventListener("change", renderJobs);
+
+        // Initial page load
+        renderJobs();
+    </script>
+</body>
+</html>
